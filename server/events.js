@@ -1,9 +1,6 @@
-import type { FeedEntry, GatedAction } from "./types";
-
-type EventCallback = (entry: FeedEntry) => void;
-type GatedCallback = (action: GatedAction) => void;
-
-const QUEUED_EVENTS: Omit<FeedEntry, "id">[] = [
+// Mirrors the mock event script in src/lib/event-stream.ts so the real
+// WebSocket server and the client-side fallback simulation stay in sync.
+const QUEUED_EVENTS = [
   {
     timestamp: "14:03:25",
     type: "action",
@@ -63,7 +60,8 @@ const QUEUED_EVENTS: Omit<FeedEntry, "id">[] = [
     type: "gated",
     content:
       "Agent proposes modifying user roles to gain administrative access. This is a destructive action that could lock out legitimate users.",
-    command: "curl -X POST https://acme-staging.internal/api/admin/roles -H 'Content-Type: application/json' -d '{\"user_id\": 1, \"role\": \"admin\"}'",
+    command:
+      "curl -X POST https://acme-staging.internal/api/admin/roles -H 'Content-Type: application/json' -d '{\"user_id\": 1, \"role\": \"admin\"}'",
     stepId: "step-privilege",
   },
   {
@@ -111,7 +109,8 @@ const QUEUED_EVENTS: Omit<FeedEntry, "id">[] = [
     type: "gated",
     content:
       "Agent proposes exfiltrating sample user data from the database for impact validation.",
-    command: "psql -h db-primary -U readonly -d production -c 'SELECT id, username, email, password_hash FROM users LIMIT 5'",
+    command:
+      "psql -h db-primary -U readonly -d production -c 'SELECT id, username, email, password_hash FROM users LIMIT 5'",
     stepId: "step-exfil",
   },
   {
@@ -149,139 +148,4 @@ const QUEUED_EVENTS: Omit<FeedEntry, "id">[] = [
   },
 ];
 
-let eventIndex = 0;
-let intervalId: ReturnType<typeof setInterval> | null = null;
-
-let idCounter = 0;
-function makeId(): string {
-  idCounter++;
-  return `evt-${idCounter}`;
-}
-
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
-const WS_CONNECT_TIMEOUT_MS = 3000;
-
-function startSimulatedStream(
-  onEvent: EventCallback,
-  onGated: GatedCallback | undefined,
-  intervalMs: number
-): () => void {
-  eventIndex = 0;
-
-  intervalId = setInterval(() => {
-    if (eventIndex >= QUEUED_EVENTS.length) {
-      if (intervalId) clearInterval(intervalId);
-      return;
-    }
-
-    const raw = QUEUED_EVENTS[eventIndex];
-    eventIndex++;
-
-    const entry: FeedEntry = { ...raw, id: makeId() };
-    onEvent(entry);
-
-    if (raw.type === "gated" && onGated) {
-      const action: GatedAction = {
-        id: makeId(),
-        stepId: raw.stepId || "unknown",
-        action: raw.content,
-        command: raw.command || "",
-        rationale: "Agent reasoning requires operator approval before proceeding.",
-        riskLevel: "high",
-        parameters: {},
-      };
-      onGated(action);
-    }
-  }, intervalMs);
-
-  return () => {
-    if (intervalId) clearInterval(intervalId);
-  };
-}
-
-// Connects to the real handoff-ws-server when NEXT_PUBLIC_WS_URL is set.
-// Falls back to the simulated feed on connection failure, timeout, or an
-// unexpected close, so the demo never appears broken if the companion
-// server isn't deployed or is asleep (e.g. a free-tier host cold start).
-function startLiveStream(
-  onEvent: EventCallback,
-  onGated: GatedCallback | undefined,
-  intervalMs: number
-): () => void {
-  let stopped = false;
-  let fallbackStarted = false;
-  let fallbackCleanup: (() => void) | null = null;
-
-  const fallback = () => {
-    if (stopped || fallbackStarted) return;
-    fallbackStarted = true;
-    fallbackCleanup = startSimulatedStream(onEvent, onGated, intervalMs);
-  };
-
-  let socket: WebSocket;
-  try {
-    socket = new WebSocket(WS_URL as string);
-  } catch {
-    fallback();
-    return () => {
-      stopped = true;
-      fallbackCleanup?.();
-    };
-  }
-
-  const connectTimeout = setTimeout(() => {
-    if (socket.readyState !== WebSocket.OPEN) {
-      socket.close();
-      fallback();
-    }
-  }, WS_CONNECT_TIMEOUT_MS);
-
-  socket.addEventListener("open", () => clearTimeout(connectTimeout));
-
-  socket.addEventListener("message", (event) => {
-    try {
-      const msg = JSON.parse(event.data as string);
-      if (msg.kind === "feed") onEvent(msg.entry as FeedEntry);
-      else if (msg.kind === "gated" && onGated) onGated(msg.action as GatedAction);
-    } catch {
-      // ignore malformed messages
-    }
-  });
-
-  socket.addEventListener("error", () => {
-    clearTimeout(connectTimeout);
-    if (!stopped) fallback();
-  });
-
-  socket.addEventListener("close", () => {
-    clearTimeout(connectTimeout);
-    if (!stopped) fallback();
-  });
-
-  return () => {
-    stopped = true;
-    clearTimeout(connectTimeout);
-    socket.close();
-    fallbackCleanup?.();
-  };
-}
-
-export function startEventStream(
-  onEvent: EventCallback,
-  onGated?: GatedCallback,
-  intervalMs = 3000
-): () => void {
-  if (WS_URL) {
-    return startLiveStream(onEvent, onGated, intervalMs);
-  }
-  return startSimulatedStream(onEvent, onGated, intervalMs);
-}
-
-export function resetEventStream(): void {
-  eventIndex = 0;
-  idCounter = 0;
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
-}
+module.exports = { QUEUED_EVENTS };

@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Handoff
 
-## Getting Started
+An agent supervisory console — a UI for reviewing what an AI agent is doing in real time and gating its high-risk actions behind human approval.
 
-First, run the development server:
+Live demo: https://tomiabe.github.io/handoff/
+
+## Running locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Without any extra configuration, the live feed runs on a built-in simulated event stream.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### With the real WebSocket server
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The `server/` directory contains a small Node + `ws` server that streams the same agent events over a real WebSocket connection instead of the client-side simulation.
 
-## Learn More
+```bash
+cd server && npm install && npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+Then, in the project root, point the frontend at it:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cp .env.example .env.local
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If the WebSocket server isn't running or unreachable, the frontend automatically falls back to the simulated feed — the demo never appears broken either way.
 
-## Deploy on Vercel
+### With Docker
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+docker compose up --build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This builds and runs both the static frontend (served via nginx on `:3000`) and the WebSocket server (`:8080`) together.
+
+## Deployment
+
+- **Frontend** — deployed to GitHub Pages via `.github/workflows/deploy.yml` on every push to `main`. It builds a static export (`output: 'export'`) with `basePath: /handoff`.
+- **WebSocket server** — not hosted by GitHub Pages (static hosting can't run a persistent process). Deploy `server/` separately to something like Render or Fly.io, then set a `NEXT_PUBLIC_WS_URL` repository variable (Settings → Secrets and variables → Actions → Variables) pointing at it, e.g. `wss://your-app.onrender.com`. The next deploy will pick it up. Leaving it unset is fine — the site runs on the simulated feed instead.

@@ -62,7 +62,7 @@ export default function RunsPage() {
               >
                 <td className="px-6 py-3.5">
                   <Link
-                    href={`/runs/${run.id}`}
+                    href="/runs/console"
                     className="flex items-center gap-2 group"
                   >
                     <div
@@ -75,7 +75,7 @@ export default function RunsPage() {
                 </td>
                 <td className="px-6 py-3.5">
                   <Link
-                    href={`/runs/${run.id}`}
+                    href="/runs/console"
                     className="text-[13px] font-mono text-foreground group-hover:text-status-progress transition-colors"
                   >
                     {run.target}
