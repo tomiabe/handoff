@@ -19,6 +19,40 @@ export default function DecisionsPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto">
+        {/* Mobile/tablet: stacked cards */}
+        <div className="md:hidden divide-y divide-border">
+          {allDecisions.map((d) => (
+            <div key={d.id} className="px-4 py-4">
+              <div className="flex items-center justify-between gap-2">
+                <Badge variant="risk" risk={d.riskLevel}>
+                  {d.riskLevel}
+                </Badge>
+                <span className="text-[11px] font-mono text-muted">
+                  {d.timestamp}
+                </span>
+              </div>
+              <p className="text-[13px] text-foreground mt-2">
+                {d.actionProposed}
+              </p>
+              <p className="text-[12px] text-muted leading-relaxed mt-1">
+                {d.agentRationale}
+              </p>
+              <p
+                className={`text-[12px] font-medium mt-2 ${decisionColor(d.outcome)}`}
+              >
+                {decisionLabel(d.outcome)}
+              </p>
+              {d.operatorNote && (
+                <p className="text-[12px] text-muted font-mono mt-2 border-l-2 border-border pl-2">
+                  {d.operatorNote}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
@@ -84,6 +118,7 @@ export default function DecisionsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

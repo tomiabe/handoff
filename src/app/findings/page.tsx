@@ -51,7 +51,7 @@ export default function FindingsPage() {
           </span>
         </div>
 
-        <div className="flex items-center gap-3 mt-4">
+        <div className="flex items-center gap-3 mt-4 flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] text-muted">Severity:</span>
             <select
@@ -97,6 +97,32 @@ export default function FindingsPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto">
+        {/* Mobile/tablet: stacked cards */}
+        <div className="md:hidden divide-y divide-border">
+          {filtered.map((f) => (
+            <div key={f.id} className="px-4 py-4">
+              <div className="flex items-center justify-between gap-2">
+                <Badge variant="severity" severity={f.severity}>
+                  {f.severity}
+                </Badge>
+                <span className="text-[11px] font-mono text-muted">
+                  {f.timestamp}
+                </span>
+              </div>
+              <p className="text-[13px] text-foreground mt-2">{f.title}</p>
+              <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] font-mono text-muted">
+                <span>{f.asset}</span>
+                <span>{f.confidence}% confidence</span>
+                <span className={findingStatusColor(f.status)}>
+                  {findingStatusLabel(f.status)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
@@ -160,6 +186,7 @@ export default function FindingsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
