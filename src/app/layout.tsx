@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Handoff - Agent Supervisory Console",
+  title: "Handoff - Pentest Agent Supervisory Console",
   description:
-    "Human-in-the-loop supervisory console for AI agent operations. Portfolio demo with synthetic data.",
+    "A human-in-the-loop console for autonomous pentest/red-team agents: watch a live recon feed, review findings, and approve or deny high-risk actions before they run. Portfolio demo with synthetic data.",
 };
 
 export default function RootLayout({

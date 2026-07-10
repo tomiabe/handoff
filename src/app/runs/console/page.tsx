@@ -56,6 +56,12 @@ export default function RunConsolePage() {
           </p>
           <div className="space-y-2">
             <div>
+              <p className="text-[10px] text-muted">Client / Scope</p>
+              <p className="text-[12px] text-foreground">
+                {run.client} &mdash; {run.scope}
+              </p>
+            </div>
+            <div>
               <p className="text-[10px] text-muted">Target</p>
               <p className="text-[13px] font-mono text-foreground">{run.target}</p>
             </div>

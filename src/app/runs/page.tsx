@@ -23,7 +23,7 @@ export default function RunsPage() {
       <header className="px-6 py-5 border-b border-border">
         <h1 className="text-[15px] font-semibold text-foreground">Runs</h1>
         <p className="text-[12px] text-muted mt-0.5">
-          Agent assessment runs and their current status
+          Autonomous pentest &amp; red-team agent engagements, live and past
         </p>
       </header>
 
@@ -52,6 +52,9 @@ export default function RunsPage() {
               <th className="text-right text-[11px] uppercase tracking-wider text-muted font-medium px-6 py-3">
                 Severity
               </th>
+              <th className="text-right text-[11px] uppercase tracking-wider text-muted font-medium px-6 py-3">
+                Approvals
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -74,11 +77,13 @@ export default function RunsPage() {
                   </Link>
                 </td>
                 <td className="px-6 py-3.5">
-                  <Link
-                    href="/runs/console"
-                    className="text-[13px] font-mono text-foreground group-hover:text-status-progress transition-colors"
-                  >
-                    {run.target}
+                  <Link href="/runs/console" className="block group">
+                    <span className="text-[13px] font-mono text-foreground group-hover:text-status-progress transition-colors">
+                      {run.target}
+                    </span>
+                    <span className="block text-[11px] text-muted mt-0.5">
+                      {run.client} &mdash; {run.scope}
+                    </span>
                   </Link>
                 </td>
                 <td className="px-6 py-3.5">
@@ -107,7 +112,17 @@ export default function RunsPage() {
                       {run.highestSeverity}
                     </Badge>
                   ) : (
-                    <span className="text-[12px] text-muted">\u2014</span>
+                    <span className="text-[12px] text-muted">&mdash;</span>
+                  )}
+                </td>
+                <td className="px-6 py-3.5 text-right">
+                  {run.pendingApprovals > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 text-[12px] font-mono text-status-amber">
+                      <span className="w-1.5 h-1.5 rounded-full bg-status-amber" />
+                      {run.pendingApprovals}
+                    </span>
+                  ) : (
+                    <span className="text-[12px] text-muted font-mono">&mdash;</span>
                   )}
                 </td>
               </tr>

@@ -19,11 +19,14 @@ export interface Run {
   id: string;
   target: string;
   agentName: string;
+  client: string;
+  scope: string;
   status: RunStatus;
   startTime: string;
   duration: string | null;
   findingsCount: number;
   highestSeverity: Severity | null;
+  pendingApprovals: number;
   steps: Step[];
 }
 

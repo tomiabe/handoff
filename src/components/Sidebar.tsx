@@ -20,7 +20,7 @@ export function Sidebar() {
             Handoff
           </h1>
           <p className="text-[11px] text-muted mt-0.5 font-mono">
-            agent supervisory console
+            pentest / red-team agent console
           </p>
         </Link>
       </div>
@@ -46,9 +46,12 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="px-4 py-3 border-t border-border">
+      <div className="px-4 py-3 border-t border-border space-y-1">
+        <p className="text-[10px] text-status-amber font-mono leading-relaxed">
+          Human-in-the-loop approval gate
+        </p>
         <p className="text-[10px] text-muted font-mono leading-relaxed">
-          Simulated data &mdash; demo only
+          Simulated data &mdash; portfolio demo
         </p>
       </div>
     </aside>
